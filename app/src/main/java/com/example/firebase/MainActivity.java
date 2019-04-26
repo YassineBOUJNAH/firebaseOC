@@ -5,15 +5,20 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 
 import com.example.firebase.api.UserHelper;
 import com.example.firebase.auth.ProfileActivity;
+import com.example.firebase.model.User;
 import com.firebase.ui.auth.AuthUI;
 import com.example.firebase.R;
 import com.example.firebase.base.BaseActivity;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.Arrays;
 
@@ -119,7 +124,14 @@ public class MainActivity extends BaseActivity {
 
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) { // SUCCESS
-                this.createUserInFirestore();
+                UserHelper.getUser(this.getCurrentUser().getUid()).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if(!(Boolean) documentSnapshot.exists()) {
+                            createUserInFirestore();
+                        }
+                    }
+                });
                 showSnackBar(this.coordinatorLayout, getString(R.string.connection_succeed));
             } else { // ERRORS
                 if (response == null) {
